@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CreditCard, Settings } from "lucide-react";
+import { CreditCard, LibraryBig, Settings } from "lucide-react";
 import { GeezMark, StatPill } from "@/components/ui";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { navItems, user } from "@/lib/learning-data";
@@ -42,6 +42,13 @@ export function AppShell({ children, title }: { children: React.ReactNode; title
           >
             <CreditCard size={20} aria-hidden="true" />
             Plans
+          </Link>
+          <Link
+            href="/admin/courses"
+            className="focus-ring flex items-center gap-3 rounded-2xl px-4 py-3 font-bold text-charcoal/72 transition hover:bg-leaf hover:text-cream dark:text-cream/72 dark:hover:bg-saffron dark:hover:text-ink"
+          >
+            <LibraryBig size={20} aria-hidden="true" />
+            Admin Courses
           </Link>
         </nav>
       </aside>
