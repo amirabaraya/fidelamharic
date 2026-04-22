@@ -42,18 +42,29 @@ export function PracticeLab() {
   );
 
   function playTeacher() {
-    const spoken = speakText(
+    speakText(
       `${phrase.english}. In Amharic, say ${phrase.transliteration}. ${phrase.tip}`,
       "en-US",
       0.9
-    );
-    setStatus(spoken ? "Teacher voice is explaining the phrase." : "Speech playback is not available in this browser.");
+    ).then((spoken) => {
+      setStatus(spoken ? "Teacher voice is explaining the phrase." : "Speech playback is not available in this browser.");
+    });
     setCompleted((items) => [...new Set([...items, "teacher"])]);
   }
 
   function playAmharic() {
-    const spoken = speakText(phrase.amharic, "am-ET", 0.72);
-    setStatus(spoken ? "Playing the Amharic phrase slowly." : "Speech playback is not available in this browser.");
+    speakText(
+      phrase.amharic,
+      "am-ET",
+      0.72,
+      `Amharic pronunciation: ${phrase.transliteration}. ${phrase.tip}`
+    ).then((spoken) => {
+      setStatus(
+        spoken
+          ? "Playing Amharic audio. If your device has no Amharic voice, you will hear the pronunciation guide."
+          : "Speech playback is not available in this browser."
+      );
+    });
     setCompleted((items) => [...new Set([...items, "listen"])]);
   }
 

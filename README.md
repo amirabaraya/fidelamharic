@@ -1,6 +1,10 @@
 # QalAmharic
 
-QalAmharic is a full-stack Amharic learning website built with Next.js, TypeScript, Tailwind CSS, Prisma, PostgreSQL, and NextAuth.
+QalAmharic is a full-stack Amharic learning website built by Amir Abaraya with Next.js, TypeScript, Tailwind CSS, Prisma, PostgreSQL, and NextAuth.
+
+## Author
+
+Built by Amir Abaraya.
 
 ## Features
 

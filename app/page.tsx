@@ -175,6 +175,10 @@ export default function LandingPage() {
             </Card>
           </div>
         </section>
+
+        <footer className="border-t border-charcoal/10 px-4 py-8 text-center text-sm font-bold text-charcoal/62 dark:border-cream/10 dark:text-cream/62">
+          QalAmharic was built by Amir Abaraya.
+        </footer>
       </main>
     </>
   );

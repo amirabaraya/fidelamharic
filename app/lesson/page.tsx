@@ -16,17 +16,28 @@ export default function LessonPage() {
   const isCorrect = selected === lesson.answer;
 
   function playPhrase() {
-    const spoken = speakText(lesson.phrase, "am-ET", 0.72);
-    setTeacherStatus(spoken ? "Listen for the soft rhythm of the phrase." : "Audio playback is not available in this browser.");
+    speakText(
+      lesson.phrase,
+      "am-ET",
+      0.72,
+      `Amharic pronunciation: ${lesson.transliteration}. ${lesson.translation}.`
+    ).then((spoken) => {
+      setTeacherStatus(
+        spoken
+          ? "Listen for the soft rhythm of the phrase. If your device has no Amharic voice, you will hear a pronunciation guide."
+          : "Audio playback is not available in this browser."
+      );
+    });
   }
 
   function teachPhrase() {
-    const spoken = speakText(
+    speakText(
       `${lesson.translation}. In Amharic this is pronounced ${lesson.transliteration}. Listen for two parts: selam, then new.`,
       "en-US",
       0.88
-    );
-    setTeacherStatus(spoken ? "Teacher voice is explaining the phrase in English." : "Teacher voice is not available in this browser.");
+    ).then((spoken) => {
+      setTeacherStatus(spoken ? "Teacher voice is explaining the phrase in English." : "Teacher voice is not available in this browser.");
+    });
   }
 
   return (
