@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import { PrismaClient, ExerciseType, Level } from "@prisma/client";
+import { fullCourseCatalog } from "../lib/course-catalog";
 
 const prisma = new PrismaClient();
 
@@ -50,101 +51,62 @@ async function main() {
     }
   });
 
-  const units: SeedUnit[] = [
-    {
-      slug: "roots-greetings",
-      title: "Roots and greetings",
-      description: "Fidel sounds, respectful greetings, and warm everyday introductions.",
-      level: Level.BEGINNER,
-      order: 1,
-      lessons: [
-        {
-          slug: "greeting-with-warmth",
-          title: "Greeting with warmth",
-          description: "Use ሰላም ነው? and answer naturally.",
-          xpReward: 25,
-          durationMin: 8,
-          order: 1,
-          exercises: [
-            {
-              type: ExerciseType.MULTIPLE_CHOICE,
-              prompt: "Choose the warm everyday greeting.",
-              amharicText: "ሰላም ነው?",
-              transliteration: "Selam new?",
-              englishText: "How are you?",
-              options: ["ሰላም ነው?", "ውሃ ነው?", "ቤት ነው?", "እንጀራ ነው?"],
-              answer: ["ሰላም ነው?"],
-              explanation: "Literally, this asks if there is peace."
-            },
-            {
-              type: ExerciseType.PRONUNCIATION,
-              prompt: "Record the phrase and match the rhythm.",
-              amharicText: "ሰላም ነው?",
-              transliteration: "Selam new?",
-              englishText: "How are you?",
-              answer: ["selam new"]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      slug: "market-coffee",
-      title: "At the market",
-      description: "Numbers, prices, bargaining politely, and coffee vocabulary.",
-      level: Level.BEGINNER,
-      order: 2,
-      lessons: [
-        {
-          slug: "market-numbers",
-          title: "Market numbers",
-          description: "Recognize and use prices from one to twenty.",
-          xpReward: 30,
-          durationMin: 10,
-          order: 1,
-          exercises: [
-            {
-              type: ExerciseType.TRANSLATION,
-              prompt: "Translate: ten birr",
-              amharicText: "አስር ብር",
-              transliteration: "Asir birr",
-              englishText: "Ten birr",
-              options: ["አስር ብር", "ሁለት ብር", "አንድ ቤት", "ቡና ነው"],
-              answer: ["አስር ብር"]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      slug: "family-home",
-      title: "Family and home",
-      description: "Possessives, household words, and polite requests.",
-      level: Level.LOWER_INTERMEDIATE,
-      order: 3,
-      lessons: [
-        {
-          slug: "my-family",
-          title: "My family",
-          description: "Say my mother, my father, and our home.",
-          xpReward: 35,
-          durationMin: 12,
-          order: 1,
-          exercises: [
-            {
-              type: ExerciseType.FLASHCARD,
-              prompt: "What does እናቴ mean?",
-              amharicText: "እናቴ",
-              transliteration: "Enate",
-              englishText: "My mother",
-              options: ["My mother", "Your book", "Our coffee", "His home"],
-              answer: ["My mother"]
-            }
-          ]
-        }
-      ]
-    }
+  const examples = [
+    { amharicText: "ሰላም", transliteration: "selam", englishText: "hello / peace" },
+    { amharicText: "ቡና", transliteration: "buna", englishText: "coffee" },
+    { amharicText: "እናቴ", transliteration: "enate", englishText: "my mother" },
+    { amharicText: "አስር ብር", transliteration: "asir birr", englishText: "ten birr" },
+    { amharicText: "ቤቴ", transliteration: "bete", englishText: "my home" },
+    { amharicText: "አመሰግናለሁ", transliteration: "ameseginalehu", englishText: "thank you" }
   ];
+
+  const units: SeedUnit[] = fullCourseCatalog.map((unit, unitIndex) => ({
+    slug: unit.slug,
+    title: unit.title,
+    description: unit.description,
+    level: Level[unit.level],
+    order: unitIndex + 1,
+    lessons: unit.lessons.map(([slug, title, description], lessonIndex) => {
+      const example = examples[(unitIndex + lessonIndex) % examples.length];
+      return {
+        slug,
+        title,
+        description,
+        xpReward: 25 + unitIndex * 5,
+        durationMin: 8 + lessonIndex,
+        order: lessonIndex + 1,
+        exercises: [
+          {
+            type: ExerciseType.TRANSLATION,
+            prompt: `Translate: ${example.englishText}`,
+            amharicText: example.amharicText,
+            transliteration: example.transliteration,
+            englishText: example.englishText,
+            options: [example.amharicText, "ውሃ", "ቤት", "እንጀራ"],
+            answer: [example.amharicText],
+            explanation: "Connect meaning first, then reinforce the fidel spelling."
+          },
+          {
+            type: ExerciseType.PRONUNCIATION,
+            prompt: `Record the phrase: ${example.transliteration}`,
+            amharicText: example.amharicText,
+            transliteration: example.transliteration,
+            englishText: example.englishText,
+            answer: [example.transliteration]
+          },
+          {
+            type: ExerciseType.FLASHCARD,
+            prompt: `What does ${example.amharicText} mean?`,
+            amharicText: example.amharicText,
+            transliteration: example.transliteration,
+            englishText: example.englishText,
+            options: [example.englishText, "water", "home", "bread"],
+            answer: [example.englishText]
+          }
+        ]
+      };
+    })
+  }));
 
   for (const unit of units) {
     const createdUnit = await prisma.courseUnit.upsert({

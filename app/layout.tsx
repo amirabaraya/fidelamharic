@@ -1,12 +1,39 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "FidelAmharic | Learn Amharic beautifully",
-  description:
-    "A premium Amharic learning platform with gamified lessons, pronunciation practice, spaced repetition, and culturally grounded design.",
-  applicationName: "FidelAmharic"
+  metadataBase: new URL(siteConfig.url),
+  title: {
+    default: "FidelAmharic | Learn Amharic from English",
+    template: "%s | FidelAmharic"
+  },
+  description: siteConfig.description,
+  applicationName: siteConfig.name,
+  authors: [{ name: siteConfig.author }],
+  creator: siteConfig.author,
+  keywords: [
+    "Amharic learning",
+    "learn Amharic",
+    "Fidel",
+    "Ge'ez script",
+    "Amharic course",
+    "Ethiopian language",
+    "Amharic pronunciation"
+  ],
+  openGraph: {
+    title: "FidelAmharic",
+    description: siteConfig.description,
+    url: siteConfig.url,
+    siteName: siteConfig.name,
+    type: "website"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FidelAmharic",
+    description: siteConfig.description
+  }
 };
 
 export default function RootLayout({

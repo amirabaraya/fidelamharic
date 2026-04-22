@@ -21,6 +21,9 @@ export function MarketingNav() {
           <Link className="hover:text-leaf dark:hover:text-saffron" href="/leaderboard">
             League
           </Link>
+          <Link className="hover:text-leaf dark:hover:text-saffron" href="/pricing">
+            Pricing
+          </Link>
         </div>
         <div className="flex items-center gap-2">
           <ThemeToggle />

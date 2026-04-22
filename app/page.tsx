@@ -29,6 +29,9 @@ export default function LandingPage() {
                 <Button href="/dashboard" variant="secondary">
                   View demo dashboard
                 </Button>
+                <Button href="/pricing" variant="ghost">
+                  See plans
+                </Button>
               </div>
               <div className="mt-8 flex flex-wrap gap-3">
                 <StatPill icon={Flame} label="Streaks" value="Gentle daily rhythm" tone="ember" />

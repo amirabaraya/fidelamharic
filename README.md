@@ -63,6 +63,11 @@ FidelAmharic is ready for a serverless Next.js host such as Vercel. Configure th
 - `DATABASE_URL`
 - `NEXTAUTH_URL`
 - `NEXTAUTH_SECRET`
+- `NEXT_PUBLIC_SITE_URL`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_MONTHLY_PRICE_ID`
+- `STRIPE_ANNUAL_PRICE_ID`
 
 After the production database is available, run:
 
@@ -72,6 +77,18 @@ npm run db:seed
 ```
 
 The app uses browser speech synthesis and speech recognition for practice. Speech playback works in modern browsers; microphone recognition is best supported in Chrome and Edge.
+
+## Payments
+
+Payments use Stripe Checkout subscriptions. Create a Stripe account owned by Amir Abaraya, finish Stripe payout and bank onboarding, then create two recurring Prices in the Stripe Dashboard: monthly and annual. Add those Price IDs and your Stripe secret/webhook keys to Vercel. Payments are received by the Stripe account connected to `STRIPE_SECRET_KEY`.
+
+The webhook endpoint is:
+
+```text
+https://fidelamharic.vercel.app/api/stripe/webhook
+```
+
+Listen for at least `checkout.session.completed` in Stripe so subscriptions are recorded in the database.
 
 ## Pages
 
@@ -86,4 +103,5 @@ The app uses browser speech synthesis and speech recognition for practice. Speec
 - `/leaderboard` Leaderboard
 - `/profile` Profile
 - `/settings` Settings
+- `/pricing` Pricing
 - `/admin` Admin Content Panel

@@ -43,6 +43,7 @@ model User {
   progress      Progress[]
   reviews       ReviewCard[]
   badges        UserBadge[]
+  subscription  Subscription?
 }
 
 model Account {
@@ -175,4 +176,28 @@ model UserBadge {
   badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
 
   @@unique([userId, badgeId])
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  plan                 String
+  status               String    @default("inactive")
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  stripePriceId        String?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PaymentEvent {
+  id             String   @id @default(cuid())
+  stripeEventId  String   @unique
+  type           String
+  payload        Json
+  processedAt    DateTime @default(now())
 }

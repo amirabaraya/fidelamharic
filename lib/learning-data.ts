@@ -15,6 +15,7 @@ import {
   Star,
   Trophy
 } from "lucide-react";
+import { fullCourseCatalog } from "@/lib/course-catalog";
 
 export const user = {
   name: "Maya Tesfaye",
@@ -30,53 +31,18 @@ export const user = {
   accuracy: 91
 };
 
-export const units = [
-  {
-    id: "roots",
-    title: "Unit 1",
-    subtitle: "Roots and greetings",
-    level: "Beginner",
-    progress: 100,
-    color: "leaf",
-    lessons: ["Fidel vowels", "Greeting elders", "I am from..."]
-  },
-  {
-    id: "market",
-    title: "Unit 2",
-    subtitle: "At the market",
-    level: "Beginner",
-    progress: 72,
-    color: "saffron",
-    lessons: ["Numbers 1-20", "How much?", "Coffee words"]
-  },
-  {
-    id: "home",
-    title: "Unit 3",
-    subtitle: "Family and home",
-    level: "Lower intermediate",
-    progress: 38,
-    color: "ember",
-    lessons: ["Possessives", "Family roles", "Polite requests"]
-  },
-  {
-    id: "stories",
-    title: "Unit 4",
-    subtitle: "Stories and memory",
-    level: "Intermediate",
-    progress: 12,
-    color: "moss",
-    lessons: ["Past tense", "Connectors", "Short folktales"]
-  },
-  {
-    id: "debate",
-    title: "Unit 5",
-    subtitle: "Opinion and nuance",
-    level: "Advanced",
-    progress: 0,
-    color: "charcoal",
-    lessons: ["Soft disagreement", "Cause and effect", "News Amharic"]
-  }
-];
+export const units = fullCourseCatalog.map((unit, index) => ({
+  id: unit.slug,
+  title: `Unit ${index + 1}`,
+  subtitle: unit.title,
+  level: unit.level
+    .toLowerCase()
+    .replace("_", " ")
+    .replace(/^\w/, (letter) => letter.toUpperCase()),
+  progress: [100, 72, 38, 18, 6, 0][index] ?? 0,
+  color: ["leaf", "saffron", "ember", "moss", "clay", "charcoal"][index] ?? "leaf",
+  lessons: unit.lessons.map((lesson) => lesson[1])
+}));
 
 export const skills = [
   { label: "Listening", icon: Headphones, value: 82 },
