@@ -1,5 +1,6 @@
 import { Award, CalendarCheck, Flame, Heart, Sparkles, UserRound } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
+import { LogoutButton } from "@/components/logout-button";
 import { Card, ProgressBar, StatPill } from "@/components/ui";
 import { getCurrentLearner } from "@/lib/learner";
 import { prisma } from "@/lib/prisma";
@@ -34,6 +35,7 @@ export default async function ProfilePage() {
             <StatPill icon={Sparkles} label="Total XP" value={learner.xp} tone="gold" />
             <StatPill icon={Heart} label="Hearts" value={learner.hearts} />
           </div>
+          <LogoutButton className="mt-6 w-full" />
         </Card>
         <div className="space-y-5">
           <Card>

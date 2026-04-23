@@ -14,12 +14,13 @@ export function UnitCard({
       slug: string;
       title: string;
       progress: number;
+      locked: boolean;
       exerciseCount: number;
     }>;
   };
 }) {
   const isComplete = unit.progress === 100;
-  const nextLesson = unit.lessons.find((lesson) => lesson.progress < 100) ?? unit.lessons[0];
+  const nextLesson = unit.lessons.find((lesson) => !lesson.locked && lesson.progress < 100) ?? unit.lessons.find((lesson) => !lesson.locked);
 
   return (
     <Card className="pattern relative overflow-hidden">
@@ -47,7 +48,7 @@ export function UnitCard({
               {lessonIndex + 1}
             </span>
             <span className="min-w-0 flex-1">{lesson.title}</span>
-            <span className="text-xs text-charcoal/48 dark:text-cream/48">{lesson.progress}%</span>
+            <span className="text-xs text-charcoal/48 dark:text-cream/48">{lesson.locked ? "Locked" : `${lesson.progress}%`}</span>
           </div>
         ))}
       </div>
@@ -58,9 +59,15 @@ export function UnitCard({
         </div>
         <ProgressBar value={unit.progress} />
       </div>
-      <Button href={`/lesson?lesson=${nextLesson?.slug ?? ""}`} className="relative z-10 mt-6 w-full" variant="primary">
-        {unit.progress === 0 ? "Start unit" : isComplete ? "Review unit" : "Continue"}
-      </Button>
+      {nextLesson ? (
+        <Button href={`/lesson?lesson=${nextLesson.slug}`} className="relative z-10 mt-6 w-full" variant="primary">
+          {unit.progress === 0 ? "Start unit" : isComplete ? "Review unit" : "Continue"}
+        </Button>
+      ) : (
+        <Button className="relative z-10 mt-6 w-full" variant="secondary" disabled>
+          Locked
+        </Button>
+      )}
     </Card>
   );
 }

@@ -1,49 +1,62 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CheckCircle2, Keyboard, Mic2, Play, Repeat, Waves } from "lucide-react";
+import { BookOpen, CheckCircle2, Keyboard, Mic2, Play, Repeat, Shuffle, Waves } from "lucide-react";
 import { Button, Card, ProgressBar } from "@/components/ui";
 import { practiceSets } from "@/lib/learning-data";
 import { getSpeechRecognition, scoreTranscript, speakText } from "@/lib/speech";
 
-const beginnerPhrases = [
+type PracticePhrase = {
+  id: string;
+  amharic: string;
+  transliteration: string;
+  english: string;
+  prompt: string;
+  lessonTitle: string;
+  lessonSlug: string;
+  unitTitle: string;
+};
+
+const fallbackPhrases: PracticePhrase[] = [
   {
+    id: "fallback-selam",
     amharic: "ሰላም",
     transliteration: "selam",
-    english: "peace / hello",
-    tip: "Say seh-LAHM. It is the safest first greeting."
-  },
-  {
-    amharic: "ሰላም ነው?",
-    transliteration: "selam new?",
-    english: "how are you?",
-    tip: "Literally asks, 'is it peace?' The final 'new' sounds like neh-w."
-  },
-  {
-    amharic: "አመሰግናለሁ",
-    transliteration: "ameseginalehu",
-    english: "thank you",
-    tip: "Break it into chunks: ah-meh-seh-gee-nah-leh-hoo."
+    english: "hello / peace",
+    prompt: "Listen and say hello.",
+    lessonTitle: "Meet fidel",
+    lessonSlug: "meet-fidel",
+    unitTitle: "Fidel Foundations"
   }
 ];
 
-export function PracticeLab() {
+export function PracticeLab({ phrases }: { phrases: PracticePhrase[] }) {
   const [index, setIndex] = useState(0);
   const [status, setStatus] = useState("Ready when you are.");
   const [transcript, setTranscript] = useState("");
   const [score, setScore] = useState(0);
   const [typedAnswer, setTypedAnswer] = useState("");
   const [completed, setCompleted] = useState<string[]>([]);
-  const phrase = beginnerPhrases[index];
+  const phraseList = phrases.length ? phrases : fallbackPhrases;
+  const phrase = phraseList[index] ?? phraseList[0];
+  const simpleMeaning = phrase.english.toLowerCase().split(" / ")[0].trim();
+  const tip = `Break it into syllables: ${phrase.transliteration}. Understand "${phrase.english}" first, then connect it to the fidel spelling.`;
 
   const writingCorrect = useMemo(
-    () => typedAnswer.trim().toLowerCase() === phrase.english.toLowerCase().split(" / ")[0],
-    [phrase.english, typedAnswer]
+    () => typedAnswer.trim().toLowerCase() === simpleMeaning,
+    [simpleMeaning, typedAnswer]
   );
+
+  function resetForNewPhrase(message: string) {
+    setTranscript("");
+    setTypedAnswer("");
+    setScore(0);
+    setStatus(message);
+  }
 
   function playTeacher() {
     speakText(
-      `${phrase.english}. In Amharic, say ${phrase.transliteration}. ${phrase.tip}`,
+      `${phrase.english}. In Amharic, say ${phrase.transliteration}. ${tip}`,
       "en-US",
       0.9
     ).then((spoken) => {
@@ -57,7 +70,7 @@ export function PracticeLab() {
       phrase.amharic,
       "am-ET",
       0.72,
-      `Amharic pronunciation: ${phrase.transliteration}. ${phrase.tip}`
+      `Amharic pronunciation: ${phrase.transliteration}. ${tip}`
     ).then((spoken) => {
       setStatus(
         spoken
@@ -98,11 +111,13 @@ export function PracticeLab() {
   }
 
   function nextPhrase() {
-    setIndex((current) => (current + 1) % beginnerPhrases.length);
-    setTranscript("");
-    setTypedAnswer("");
-    setScore(0);
-    setStatus("New phrase loaded.");
+    setIndex((current) => (current + 1) % phraseList.length);
+    resetForNewPhrase("New practice item loaded.");
+  }
+
+  function randomPhrase() {
+    setIndex((current) => (phraseList.length <= 1 ? current : (current + 3) % phraseList.length));
+    resetForNewPhrase("Fresh mixed practice item loaded.");
   }
 
   return (
@@ -115,7 +130,7 @@ export function PracticeLab() {
             <p className="mt-2 text-xl font-bold text-saffron">{phrase.transliteration}</p>
             <p className="mt-3 text-cream/82">{phrase.english}</p>
             <p className="mt-4 max-w-2xl rounded-2xl bg-cream/12 p-4 text-sm leading-6 text-cream/82">
-              {phrase.tip}
+              {tip}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button variant="secondary" onClick={playTeacher}>
@@ -129,6 +144,12 @@ export function PracticeLab() {
               </Button>
               <Button variant="secondary" onClick={nextPhrase}>
                 <Repeat size={18} /> Next
+              </Button>
+              <Button variant="secondary" onClick={randomPhrase}>
+                <Shuffle size={18} /> Mix
+              </Button>
+              <Button href={`/lesson?lesson=${phrase.lessonSlug}`} variant="secondary">
+                <BookOpen size={18} /> Lesson
               </Button>
             </div>
             <div className="mt-8 grid h-32 grid-cols-[repeat(24,minmax(0,1fr))] items-center gap-1 rounded-3xl bg-cream/12 p-4" aria-label="Audio waveform visualization">
@@ -148,6 +169,9 @@ export function PracticeLab() {
 
         <Card>
           <h3 className="font-display text-4xl font-bold">Today&apos;s drills</h3>
+          <p className="mt-2 text-sm font-bold text-charcoal/58 dark:text-cream/58">
+            {phraseList.length} practice items from your course. Current: {phrase.unitTitle} / {phrase.lessonTitle}
+          </p>
           <div className="mt-5 space-y-3">
             {practiceSets.map((set) => (
               <div key={set.title} className="flex items-center justify-between rounded-2xl bg-cream p-4 dark:bg-ink/64">
@@ -183,7 +207,7 @@ export function PracticeLab() {
               value={typedAnswer}
               onChange={(event) => setTypedAnswer(event.target.value)}
               className="focus-ring w-full rounded-2xl border border-charcoal/10 bg-cream px-4 py-3 dark:border-cream/10 dark:bg-ink"
-              placeholder="hello"
+              placeholder={simpleMeaning || "hello"}
             />
           </label>
           <p className="mt-3 text-sm font-bold text-leaf dark:text-saffron">
@@ -199,8 +223,8 @@ export function PracticeLab() {
         <Card>
           <Repeat className="text-leaf dark:text-saffron" />
           <h3 className="mt-4 font-display text-3xl font-bold">Vocabulary recall</h3>
-          <ProgressBar value={score || 45} className="mt-5" />
-          <p className="mt-3 text-sm text-charcoal/64 dark:text-cream/64">Your speaking score feeds the review queue.</p>
+          <ProgressBar value={score || 0} className="mt-5" />
+          <p className="mt-3 text-sm text-charcoal/64 dark:text-cream/64">Your speaking score helps you decide what to review next.</p>
         </Card>
       </div>
     </>

@@ -67,5 +67,32 @@ export async function POST(request: Request) {
     })
   ]);
 
-  return NextResponse.json({ progress, user: updatedUser });
+  const allLessons = await prisma.lesson.findMany({
+    where: { published: true },
+    orderBy: [{ unit: { order: "asc" } }, { order: "asc" }],
+    select: {
+      id: true,
+      slug: true,
+      progress: {
+        where: { userId: user.id },
+        select: { percent: true }
+      }
+    }
+  });
+  const currentIndex = allLessons.findIndex((item) => item.id === lesson.id);
+  let completedBefore = 0;
+  let nextLessonSlug: string | undefined;
+
+  for (let index = 0; index < allLessons.length; index += 1) {
+    const item = allLessons[index];
+    const percent = item.id === lesson.id ? 100 : item.progress[0]?.percent ?? 0;
+    const locked = index >= 2 && completedBefore < index;
+    if (index > currentIndex && !locked && percent < 100) {
+      nextLessonSlug = item.slug;
+      break;
+    }
+    if (percent === 100) completedBefore += 1;
+  }
+
+  return NextResponse.json({ progress, user: updatedUser, nextLessonSlug });
 }

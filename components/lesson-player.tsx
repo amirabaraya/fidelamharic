@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check, GraduationCap, Headphones, Heart, Mic, Volume2, X } from "lucide-react";
 import { Button, Card, ProgressBar } from "@/components/ui";
 import { speakText } from "@/lib/speech";
@@ -8,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 type LessonPlayerProps = {
   learner: { hearts: number };
+  nextLessonSlug?: string;
   lesson: {
     id: string;
     slug: string;
@@ -36,12 +38,14 @@ function asStringArray(value: unknown) {
 }
 
 function answerText(value: unknown) {
+  if (Array.isArray(value)) return value.find((item): item is string => typeof item === "string") ?? "";
   if (typeof value === "string") return value;
   if (value && typeof value === "object" && "value" in value && typeof value.value === "string") return value.value;
   return "";
 }
 
-export function LessonPlayer({ learner, lesson }: LessonPlayerProps) {
+export function LessonPlayer({ learner, lesson, nextLessonSlug }: LessonPlayerProps) {
+  const router = useRouter();
   const firstExercise = lesson.exercises[0];
   const [selected, setSelected] = useState<string | null>(null);
   const [saved, setSaved] = useState(lesson.progress[0]?.percent === 100);
@@ -54,16 +58,33 @@ export function LessonPlayer({ learner, lesson }: LessonPlayerProps) {
   const isCorrect = selected === correctAnswer;
 
   async function saveProgress() {
-    if (!isCorrect || saved) return;
+    if (!isCorrect) {
+      setTeacherStatus("Choose the correct meaning first, then finish the lesson.");
+      return;
+    }
+    if (saved) {
+      if (nextLessonSlug) router.push(`/lesson?lesson=${nextLessonSlug}`);
+      return;
+    }
     const response = await fetch("/api/progress", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ lessonId: lesson.id, correct: true })
     });
     if (response.ok) {
+      const body = (await response.json().catch(() => null)) as { nextLessonSlug?: string } | null;
       setSaved(true);
-      setTeacherStatus(`Lesson complete. You earned ${lesson.xpReward} XP.`);
+      const nextSlug = body?.nextLessonSlug ?? nextLessonSlug;
+      setTeacherStatus(nextSlug ? `Lesson complete. Moving to the next chapter...` : `Lesson complete. You earned ${lesson.xpReward} XP.`);
+      if (nextSlug) {
+        window.setTimeout(() => router.push(`/lesson?lesson=${nextSlug}`), 850);
+      } else {
+        window.setTimeout(() => router.push("/course"), 850);
+      }
+      return;
     }
+    const body = (await response.json().catch(() => null)) as { error?: string } | null;
+    setTeacherStatus(body?.error ?? "Could not save progress. Please try again.");
   }
 
   function playPhrase() {

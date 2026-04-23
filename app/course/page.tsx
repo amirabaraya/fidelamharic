@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Lock } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { UnitCard } from "@/components/lesson-card";
 import { Card } from "@/components/ui";
@@ -41,22 +43,37 @@ export default async function CoursePage() {
                 <p className="rounded-full bg-leaf px-4 py-2 text-sm font-black text-cream">{unit.lessons.length} chapters</p>
               </div>
               <div className="mt-5 grid gap-3 md:grid-cols-2">
-                {unit.lessons.map((lesson, index) => (
-                  <a
-                    key={lesson.id}
-                    href={`/lesson?lesson=${lesson.slug}`}
-                    className="focus-ring rounded-2xl bg-parchment p-4 transition hover:-translate-y-0.5 hover:bg-saffron/20 dark:bg-charcoal/72"
-                  >
+                {unit.lessons.map((lesson, index) => {
+                  const content = (
+                    <>
                     <p className="text-xs font-black uppercase tracking-[0.16em] text-leaf dark:text-saffron">
-                      Chapter {index + 1} | {lesson.progress}% complete
+                      Chapter {index + 1} | {lesson.locked ? "locked" : `${lesson.progress}% complete`}
                     </p>
-                    <h4 className="mt-1 font-display text-2xl font-bold">{lesson.title}</h4>
+                    <h4 className="mt-1 flex items-center gap-2 font-display text-2xl font-bold">
+                      {lesson.locked ? <Lock size={18} className="text-charcoal/40 dark:text-cream/40" /> : null}
+                      {lesson.title}
+                    </h4>
                     <p className="mt-2 text-sm leading-6 text-charcoal/64 dark:text-cream/64">{lesson.description}</p>
                     <p className="mt-3 text-xs font-bold text-charcoal/52 dark:text-cream/52">
                       {lesson.exerciseCount} exercises | {lesson.xpReward} XP | {lesson.durationMin} min
                     </p>
-                  </a>
-                ))}
+                    </>
+                  );
+
+                  return lesson.locked ? (
+                    <div key={lesson.id} className="rounded-2xl bg-parchment/60 p-4 opacity-70 dark:bg-charcoal/50">
+                      {content}
+                    </div>
+                  ) : (
+                    <Link
+                      key={lesson.id}
+                      href={`/lesson?lesson=${lesson.slug}`}
+                      className="focus-ring rounded-2xl bg-parchment p-4 transition hover:-translate-y-0.5 hover:bg-saffron/20 dark:bg-charcoal/72"
+                    >
+                      {content}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           ))}

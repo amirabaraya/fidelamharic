@@ -1,7 +1,7 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { AppShell } from "@/components/app-shell";
 import { LessonPlayer } from "@/components/lesson-player";
-import { getCurrentLearner } from "@/lib/learner";
+import { firstAvailableLesson, getCourseMapForUser, getCurrentLearner } from "@/lib/learner";
 import { prisma } from "@/lib/prisma";
 
 export default async function LessonPage({
@@ -11,10 +11,23 @@ export default async function LessonPage({
 }) {
   const learner = await getCurrentLearner();
   const params = await searchParams;
-  const slug = params.lesson;
+  const units = await getCourseMapForUser(learner.id);
+  const flatLessons = units.flatMap((unit) => unit.lessons);
+  const requested = params.lesson
+    ? flatLessons.find((item) => item.slug === params.lesson)
+    : firstAvailableLesson(units);
+
+  if (!requested) notFound();
+  if (requested.locked) {
+    const available = firstAvailableLesson(units);
+    redirect(available ? `/lesson?lesson=${available.slug}` : "/course");
+  }
+
+  const currentIndex = flatLessons.findIndex((item) => item.slug === requested.slug);
+  const nextLesson = flatLessons.slice(currentIndex + 1).find((item) => !item.locked);
 
   const lesson = await prisma.lesson.findFirst({
-    where: slug ? { slug, published: true } : { published: true },
+    where: { slug: requested.slug, published: true },
     orderBy: [{ unit: { order: "asc" } }, { order: "asc" }],
     include: {
       unit: { select: { title: true } },
@@ -30,7 +43,7 @@ export default async function LessonPage({
 
   return (
     <AppShell title="Lesson" learner={learner}>
-      <LessonPlayer learner={learner} lesson={lesson} />
+      <LessonPlayer learner={learner} lesson={lesson} nextLessonSlug={nextLesson?.slug} />
     </AppShell>
   );
 }

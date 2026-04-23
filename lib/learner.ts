@@ -68,12 +68,34 @@ export async function getCourseMapForUser(userId: string) {
     }
   });
 
+  let completedBefore = 0;
+  let lessonIndex = 0;
+
   return units.map((unit) => {
     const progressValues = unit.lessons.map((lesson) => lesson.progress[0]?.percent ?? 0);
     const progress =
       progressValues.length === 0
         ? 0
         : Math.round(progressValues.reduce((total, value) => total + value, 0) / progressValues.length);
+
+    const mappedLessons = unit.lessons.map((lesson) => {
+      const progress = lesson.progress[0]?.percent ?? 0;
+      const locked = lessonIndex >= 2 && completedBefore < lessonIndex;
+      if (progress === 100) completedBefore += 1;
+      lessonIndex += 1;
+
+      return {
+        id: lesson.id,
+        slug: lesson.slug,
+        title: lesson.title,
+        description: lesson.description,
+        xpReward: lesson.xpReward,
+        durationMin: lesson.durationMin,
+        progress,
+        locked,
+        exerciseCount: lesson.exercises.length
+      };
+    });
 
     return {
       id: unit.id,
@@ -84,18 +106,16 @@ export async function getCourseMapForUser(userId: string) {
       level: unit.level.replace("_", " "),
       order: unit.order,
       progress,
-      lessons: unit.lessons.map((lesson) => ({
-        id: lesson.id,
-        slug: lesson.slug,
-        title: lesson.title,
-        description: lesson.description,
-        xpReward: lesson.xpReward,
-        durationMin: lesson.durationMin,
-        progress: lesson.progress[0]?.percent ?? 0,
-        exerciseCount: lesson.exercises.length
-      }))
+      lessons: mappedLessons
     };
   });
+}
+
+export function firstAvailableLesson<T extends { lessons: Array<{ slug: string; locked: boolean; progress: number }> }>(
+  units: T[]
+) {
+  return units.flatMap((unit) => unit.lessons).find((lesson) => !lesson.locked && lesson.progress < 100)
+    ?? units.flatMap((unit) => unit.lessons).find((lesson) => !lesson.locked);
 }
 
 export function calculateSkillBalance(progress: Array<{ percent: number }>) {
